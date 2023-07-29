@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+datasets/icbin/*
+datasets/icbin_models/*
+datasets/new_icbin/*
+
 # C extensions
 *.so
 
