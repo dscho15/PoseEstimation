@@ -1,2 +1,2 @@
 # PoseEstimation
-Implementing a PoseEstimation paper.
+Implementing a Probabilistic PoseEstimation paper.
