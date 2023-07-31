@@ -22,14 +22,10 @@ if __name__ == "__main__":
     )
 
     crops, masks = dataset[0]
-
-    print(crops.shape)
-    print(masks.shape)
-
+    
     model = UNet(
         n_pts = dataset.N_PTS,
         n_classes = dataset.N_CLASSES
-    )
+    ).to("cuda")
 
-    trainer = Trainer()
-    trainer.fit(model)
+    model(crops.to("cuda"))
