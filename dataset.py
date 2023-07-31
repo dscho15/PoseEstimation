@@ -24,6 +24,7 @@ class ICBINDataset(Dataset):
 
     WITHIN_MASK = False
     N_PTS = 12
+    N_CLASSES = 2
 
     def __init__(self, 
                  path, 
