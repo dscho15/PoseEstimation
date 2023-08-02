@@ -16,9 +16,9 @@ class ICBINDataModule(LightningDataModule):
         self.prepare_data()
         self.setup()
 
-
     def prepare_data(self):
-        self.icbin_dataset = ICBINDataset(self.data_dir, transform=self.transform)
+        self.icbin_dataset = ICBINDataset(path=self.data_dir, 
+                                          transform=self.transform)
         self.train_size = int(0.8 * len(self.icbin_dataset))
         self.val_size = len(self.icbin_dataset) - self.train_size
         

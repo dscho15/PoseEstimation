@@ -1,4 +1,5 @@
 from pytorch_lightning import Trainer
+from pldatamodule import ICBINDataModule
 from model import UNet
 from dataset import ICBINDataset
 
@@ -12,20 +13,15 @@ if __name__ == "__main__":
     n_classes = 2
     n_pts = 12
 
-    transform = A.Compose([
-        A.Normalize(),
-    ])
-
-    dataset = ICBINDataset(
-        path="datasets/icbin",
-        transform=transform
-    )
-
-    crops, masks = dataset[0]
+    pl_datamodule = ICBINDataModule(data_dir="datasets/icbin")
     
-    model = UNet(
-        n_pts = dataset.N_PTS,
-        n_classes = dataset.N_CLASSES
+    seg_model = UNet(
+        n_pts = n_pts,
+        n_classes = n_classes
     ).to("cuda")
+
+    trainer = Trainer(
+        
+    )
 
     model(crops.to("cuda"))

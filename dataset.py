@@ -61,10 +61,12 @@ class ICBINDataset(Dataset):
         self.K = np.array([[self.CAM_PARAMS["fx"], 0, self.CAM_PARAMS["cx"]],
                            [0, self.CAM_PARAMS["fy"], self.CAM_PARAMS["cy"]],
                            [0, 0, 1]])
+        
+        print(f"Dataset initialized with {i} images")
 
     def __len__(self):
 
-        return len(self.df)
+        return len(self.scenes)
     
     def __getitem__(self, index):                      
         
