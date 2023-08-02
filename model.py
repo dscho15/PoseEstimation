@@ -26,11 +26,11 @@ class UNet(nn.Module):
         self.layer3 = base_layers[6]
         self.layer4 = base_layers[7]
 
-        self.decoders = nn.ModuleDict()
+        self.decoder_modules = nn.ModuleDict()
 
         for i in range(n_classes):
 
-            self.decoders[f"decoder_{i}"] = nn.ModuleDict(
+            self.decoder_modules[f"decoder_{i}"] = nn.ModuleDict(
                 {
                     "layer0_1x1": convrelu(64, 64, 1, 0),
                     "layer1_1x1": convrelu(64, 64, 1, 0),
@@ -49,7 +49,7 @@ class UNet(nn.Module):
             )
 
         self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
-
+        
         print("UNet initialized")
         print("Total number of parameters ", sum(p.numel() for p in self.parameters()))
 
@@ -63,9 +63,11 @@ class UNet(nn.Module):
 
         e_layers = [e_layer0, e_layer1, e_layer2, e_layer3, e_layer4]
 
-        for decoder in self.decoders:
+        fm_list = []
 
-            decoder = self.decoders[decoder]
+        for decoder_key in self.decoder_modules:
+
+            decoder = self.decoder_modules[decoder_key]
 
             x = decoder["layer4_1x1"](e_layer4)
             x = self.upsample(x)
@@ -81,7 +83,9 @@ class UNet(nn.Module):
             x = decoder["conv_1"](x)
             x = decoder["conv_2"](x)
 
-        return x
+            fm_list.append(x)
+
+        return fm_list
 
 
 if __name__ == "__main__":
