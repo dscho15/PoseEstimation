@@ -113,6 +113,26 @@ class ICBINDataset(Dataset):
 
         return mask
     
+    def visualize(self, image, mask, blend = True):
+        
+        mask = np.sum(mask, axis=0)
+        mask = np.expand_dims(mask, axis=2)
+        mask = np.clip(mask, 0, 1)
+
+        if blend:
+
+            if np.max(image) > 1:
+                image = image / 255
+            image = image * mask * 0.75 + image * 0.25
+
+        plt.subplot(1, 2, 1)
+        plt.imshow(image)
+
+        plt.subplot(1, 2, 2)
+        plt.imshow(mask)
+        
+        plt.show()
+    
     def __getitem__(self, index):                      
         
         scene = self.scenes[index]
@@ -137,7 +157,7 @@ class ICBINDataset(Dataset):
         global_idx = int(global_idx)
         physical_idx = int(physical_idx.split(".")[0])
         
-        # get the bounding box of the object
+        # get the bounding box of the object (som bug arises here)
         x, y, w, h = bbox_cfg[f"{global_idx}"][physical_idx]["bbox_obj"]
         x = max(0, x - int(0.1 * w))
         y = max(0, y - int(0.1 * h))
@@ -173,25 +193,23 @@ class ICBINDataset(Dataset):
             if pt[0] >= 0 and pt[0] < self.cam_params["width"] and pt[1] >= 0 and pt[1] < self.cam_params["height"]:
                 mask[j, pt[1], pt[0]] = 1
 
+        # crop the mask
         mask = mask[:, y:y+h, x:x+w]
-
         mask = np.array([cv2.resize(m, (256, 256)) for m in mask])
-
         mask = np.array([cv2.GaussianBlur(m, (5, 5), 0) for m in mask.astype(np.float32)])
-        mask = torch.from_numpy(mask)
 
-        crop = image[y:y+h, x:x+w]
-        crop = cv2.resize(crop, (256, 256), interpolation=cv2.INTER_CUBIC)
-        crop = crop.astype(np.float32)
-        crop = self.transform(image=crop)["image"]
+        # crop the image
+        image = image[y:y+h, x:x+w]
+        image = cv2.resize(image, (256, 256), interpolation=cv2.INTER_CUBIC)
 
-        crop = np.transpose(crop, (2, 0, 1))
-        crop = torch.from_numpy(crop)
-        
-        crops = torch.stack(crop)
-        mask = torch.stack(mask)
+        self.visualize(image, mask)
 
-        return crops, mask
+        image = image.astype(np.float32)
+        image = self.transform(image=image)["image"]
+        image = np.transpose(image, (2, 0, 1))
+        image = torch.from_numpy(image)
+
+        return image, mask
 
         
 if __name__ == "__main__":
@@ -199,6 +217,8 @@ if __name__ == "__main__":
     icbin_dataset = ICBINDataset(path_to_scenes="datasets/icbin",
                                  path_to_meshes="datasets/meshes",
                                  transform=A.Compose([A.Normalize()]))
-    icbin_dataset[0]
+    
+    for i in range(1, 500, 10):
+        icbin_dataset[i]
 
     
