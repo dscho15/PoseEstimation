@@ -5,21 +5,27 @@ from torch.utils.data import DataLoader, random_split
 
 class ICBINDataModule(LightningDataModule):
 
-
     def __init__(self, 
-                 data_dir: str = "./datasets/icbin"):
+                 transform: A.Compose = None,
+                 path_to_meshes: str = "./datasets/meshes",
+                 path_to_scenes: str = "./datasets/icbin"):
 
         super().__init__()
         
-        self.data_dir = data_dir
-        self.transform = A.Compose([A.Normalize()])
+        self.path_to_meshes = path_to_meshes
+        self.path_to_scenes = path_to_scenes
+        self.transform = A.Compose([A.Normalize()]) if transform is None else transform
         self.prepare_data()
         self.setup()
 
     def prepare_data(self):
-        self.icbin_dataset = ICBINDataset(path=self.data_dir, 
+
+        self.icbin_dataset = ICBINDataset(path_to_scenes=self.path_to_scenes,
+                                          path_to_meshes=self.path_to_meshes,
                                           transform=self.transform)
+        
         self.train_size = int(0.8 * len(self.icbin_dataset))
+
         self.val_size = len(self.icbin_dataset) - self.train_size
         
     def setup(self):
