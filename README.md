@@ -1,4 +1,4 @@
-# PoseEstimation
+# 6D Pose Estimation using Key Points
 
 Implementing a probabilistic approach for the 6D pose estimation of rigid objects using an RGB camera with access to the CAD files of the object.
 
