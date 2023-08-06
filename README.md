@@ -2,7 +2,7 @@
 
 Implementing a probabilistic approach for the 6D pose estimation of rigid objects using an RGB camera with access to the CAD files of the object.
 
-It follows the following appoach:
+The paper adheres to the following pipeline:
 
 1. Detect the object in the image using a CNN
 2. Estimate n-keypoints of the object 
