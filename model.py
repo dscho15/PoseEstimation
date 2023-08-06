@@ -2,11 +2,11 @@ from torch import nn
 import torch
 from torchvision import models
 
-def conv_gelu(in_channels, out_channels, kernel, padding):
+def conv_relu(in_channels, out_channels, kernel, padding):
     
     return nn.Sequential(
         nn.Conv2d(in_channels, out_channels, kernel, padding=padding),
-        nn.GELU(),
+        nn.ReLU(),
     )
 
 class UNet(nn.Module):
@@ -34,25 +34,25 @@ class UNet(nn.Module):
 
             self.decoder_modules[f"decoder_{i}"] = nn.ModuleDict(
                 {
-                    "layer0_1x1": conv_gelu(64, 64, 1, 0),
-                    "layer1_1x1": conv_gelu(64, 64, 1, 0),
-                    "layer2_1x1": conv_gelu(128, 128, 1, 0),
-                    "layer3_1x1": conv_gelu(256, 256, 1, 0),
-                    "layer4_1x1": conv_gelu(512, 512, 1, 0),
+                    "layer0_1x1": conv_relu(64, 64, 1, 0),
+                    "layer1_1x1": conv_relu(64, 64, 1, 0),
+                    "layer2_1x1": conv_relu(128, 128, 1, 0),
+                    "layer3_1x1": conv_relu(256, 256, 1, 0),
+                    "layer4_1x1": conv_relu(512, 512, 1, 0),
 
-                    "conv_up3": conv_gelu(256 + 512, 512, 3, 1),
-                    "conv_up2": conv_gelu(128 + 512, 256, 3, 1),
-                    "conv_up1": conv_gelu(64 + 256, 256, 3, 1),
-                    "conv_up0": conv_gelu(64 + 256, 128, 3, 1),
+                    "conv_up3": conv_relu(256 + 512, 512, 3, 1),
+                    "conv_up2": conv_relu(128 + 512, 256, 3, 1),
+                    "conv_up1": conv_relu(64 + 256, 256, 3, 1),
+                    "conv_up0": conv_relu(64 + 256, 128, 3, 1),
 
-                    "conv_1": conv_gelu(128, 64, 1, 0),
-                    "conv_2": conv_gelu(64, n_pts, 1, 0),
+                    "conv_1": conv_relu(128, 64, 1, 0),
+                    "conv_2": conv_relu(64, n_pts, 1, 0),
                 }
             )
 
         self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
 
-    def forward(self, input):
+    def forward(self, input, obj_ids):
 
         e_layer0 = self.layer0(input)
         e_layer1 = self.layer1(e_layer0)
