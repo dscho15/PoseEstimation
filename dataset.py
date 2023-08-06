@@ -24,7 +24,7 @@ class ICBINDataset(Dataset):
     }
 
     WITHIN_MASK = False
-
+    DEBUG = False
     N_PTS = 12
     N_CLASSES = 2
 
@@ -153,7 +153,7 @@ class ICBINDataset(Dataset):
         
         # load the mask related to the object
         path_to_mask = scene["path"] / "mask" / scene["mask"]
-        mask = self.load_mask(path_to_mask)
+        confidence_mask = self.load_mask(path_to_mask)
         
         global_idx, physical_idx = scene["mask"].split("_")
         global_idx = int(global_idx)
@@ -171,7 +171,7 @@ class ICBINDataset(Dataset):
             return self.__getitem__(index + 1 % len(self))
 
         # crop the image and the mask
-        mask = np.zeros((self.N_PTS, self.cam_params["height"], self.cam_params["width"]))
+        confidence_mask = np.zeros((self.N_PTS, self.cam_params["height"], self.cam_params["width"]))
         
         # extract the meta data of the object
         obj = pose_cfg[f"{global_idx}"][physical_idx]
@@ -197,18 +197,19 @@ class ICBINDataset(Dataset):
         for j, pt in enumerate(pts):
             
             if pt[0] >= 0 and pt[0] < self.cam_params["width"] and pt[1] >= 0 and pt[1] < self.cam_params["height"]:
-                mask[j, pt[1], pt[0]] = 1
+                confidence_mask[j, pt[1], pt[0]] = 1
 
         # crop the mask
-        mask = mask[:, y:y+h, x:x+w]
-        mask = np.array([cv2.resize(m, (256, 256)) for m in mask])
-        mask = np.array([cv2.GaussianBlur(m, (5, 5), 0) for m in mask.astype(np.float32)])
+        confidence_mask = confidence_mask[:, y:y+h, x:x+w]
+        confidence_mask = np.array([cv2.resize(m, (256, 256)) for m in confidence_mask])
+        confidence_mask = np.array([cv2.GaussianBlur(m, (5, 5), 0) for m in confidence_mask.astype(np.float32)])
 
         # crop the image
         image = image[y:y+h, x:x+w]
         image = cv2.resize(image, (256, 256), interpolation=cv2.INTER_CUBIC)
 
-        self.visualize(image, mask)
+        if self.DEBUG:
+            self.visualize(image, confidence_mask)
 
         # apply the transformation
         image = image.astype(np.float32)
@@ -216,9 +217,10 @@ class ICBINDataset(Dataset):
         image = np.transpose(image, (2, 0, 1))
 
         image = torch.from_numpy(image)
-        mask = torch.from_numpy(mask)
+        confidence_mask = torch.from_numpy(confidence_mask)
+        obj_id = torch.Tensor([obj_id]) - 1
 
-        return image, mask
+        return image, confidence_mask, obj_id
 
         
 if __name__ == "__main__":
@@ -228,6 +230,6 @@ if __name__ == "__main__":
                                  transform=A.Compose([A.Normalize()]))
     
     for i in range(1, 500, 10):
-        icbin_dataset[i]
+        image, confidence_mask, obj_id = icbin_dataset[i]
 
     

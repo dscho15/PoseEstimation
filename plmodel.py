@@ -20,19 +20,21 @@ class PlSegmentModel(LightningModule):
 
     def training_step(self, batch, batch_idx):
         
-        imgs, gt_confidence = batch
-        pred_confidence = self.model(imgs)
+        imgs, gt_confidences, obj_ids = batch
 
-        loss = torch.nn.functional.cross_entropy(pred_confidence, gt_confidence)
+        pred_confidence = self.model(imgs, obj_ids)
+
+        loss = torch.nn.functional.cross_entropy(pred_confidence, gt_confidences)
 
         return loss
 
     def validation_step(self, batch, batch_idx):
         
-        imgs, gt_confidence = batch
-        pred_confidence = self.model(imgs)
+        imgs, gt_confidences, obj_ids = batch
 
-        loss = torch.nn.functional.cross_entropy(pred_confidence, gt_confidence)
+        pred_confidence = self.model(imgs, obj_ids)
+
+        loss = torch.nn.functional.cross_entropy(pred_confidence, gt_confidences)
 
         return loss
 
