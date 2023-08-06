@@ -1,10 +1,9 @@
-from typing import Any
 import torch
 from model import UNet
 from pytorch_lightning import LightningModule
 
 
-class SegmentModel(LightningModule):
+class PlSegmentModel(LightningModule):
 
     def __init__(self, 
                  n_classes : int, 
@@ -13,6 +12,7 @@ class SegmentModel(LightningModule):
         super().__init__()
         
         self.model = UNet(n_pts, n_classes)
+        self.save_hyperparameters()
 
     def forward(self, x):
 
@@ -20,19 +20,19 @@ class SegmentModel(LightningModule):
 
     def training_step(self, batch, batch_idx):
         
-        x, y = batch
-        y_hat = self.model(x)
+        imgs, gt_confidence = batch
+        pred_confidence = self.model(imgs)
 
-        loss = torch.nn.functional.cross_entropy(y_hat, y)
+        loss = torch.nn.functional.cross_entropy(pred_confidence, gt_confidence)
 
         return loss
 
     def validation_step(self, batch, batch_idx):
         
-        x, y = batch
-        y_hat = self.model(x)
+        imgs, gt_confidence = batch
+        pred_confidence = self.model(imgs)
 
-        loss = torch.nn.functional.cross_entropy(y_hat, y)
+        loss = torch.nn.functional.cross_entropy(pred_confidence, gt_confidence)
 
         return loss
 

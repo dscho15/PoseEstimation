@@ -123,8 +123,10 @@ class ICBINDataset(Dataset):
 
             if np.max(image) > 1:
                 image = image / 255
+
             image = image * mask * 0.75 + image * 0.25
 
+        # visualize the image and the mask
         plt.subplot(1, 2, 1)
         plt.imshow(image)
 
@@ -164,6 +166,10 @@ class ICBINDataset(Dataset):
         w = min(image.shape[1] - x, int(1.2 * w))
         h = min(image.shape[0] - y, int(1.2 * h))
 
+        # check if the bounding box is within the image
+        if w < 0 or h < 0:
+            return self.__getitem__(index + 1 % len(self))
+
         # crop the image and the mask
         mask = np.zeros((self.N_PTS, self.cam_params["height"], self.cam_params["width"]))
         
@@ -174,7 +180,7 @@ class ICBINDataset(Dataset):
         obj_id = obj['obj_id']
         
         # load the mesh
-        mesh = trimesh.load(f'{self.path_to_meshes}/obj_00000{obj_id}_target.ply')
+        mesh = trimesh.load(f'{self.path_to_meshes}/obj_{obj_id}_target.ply')
 
         # project the mesh into the image
         H = np.eye(4)
@@ -204,10 +210,13 @@ class ICBINDataset(Dataset):
 
         self.visualize(image, mask)
 
+        # apply the transformation
         image = image.astype(np.float32)
         image = self.transform(image=image)["image"]
         image = np.transpose(image, (2, 0, 1))
+
         image = torch.from_numpy(image)
+        mask = torch.from_numpy(mask)
 
         return image, mask
 
